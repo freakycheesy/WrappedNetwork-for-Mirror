@@ -1,5 +1,5 @@
-# WrappedNetwork-for-FishNet
- Simple wrapper for Unity FishNet created to help people to migrate from Photon Pun   
+# WrappedNetwork-for-Mirror
+ Simple wrapper for Unity Mirror created to help people to migrate from Photon Pun   
    
 ## Similarly to the PhotonView system, you can move RPC logic to another behaviour   
  You don't need to inherit from NetworkBehaviour!  
