@@ -48,21 +48,20 @@ namespace UnityEngine.Networking
             NetworkServer.Shutdown();
             NetworkClient.Shutdown();
         }
+        [Server]
         public static void LoadLevel(string sceneName) {
-            if (!NetworkServer.active)
-                return;
             var scene = SceneManager.GetSceneByName(sceneName);
             LoadScene(scene);
         }
+        [Server]
         public static void LoadLevel(int index) {
-            if (!NetworkServer.active)
-                return;
-            var scene = SceneManager.GetSceneByBuildIndex(index);
+            var scene = SceneManager.GetSceneAt(index);
             LoadScene(scene);
         }
 
+        [Server]
         private static void LoadScene(Scene scene) {
-            NetworkManager.singleton.ServerChangeScene(scene.path);
+            NetworkManager.singleton.ServerChangeScene(scene.name);
         }
 
         public static void CreateRoom(int maxConns = 16, bool asHost = true) {
