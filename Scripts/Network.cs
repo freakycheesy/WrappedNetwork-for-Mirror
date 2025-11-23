@@ -1,9 +1,8 @@
 using Mirror;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace WrappedNetworking
+namespace UnityEngine.Networking
 {
     public static partial class Network
     {

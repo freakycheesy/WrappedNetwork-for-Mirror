@@ -2,18 +2,40 @@ using System.Reflection;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using Mirror;
 
-namespace WrappedNetworking {
+namespace UnityEngine.Networking {
 #if UNITY_EDITOR
-    [CustomEditor(typeof(NetworkView))]
-    public class WrappedViewEditor : Editor {
+    [CustomEditor(typeof(NetworkView)), CanEditMultipleObjects]
+    public class NetworkViewEditor : Editor {
         public override void OnInspectorGUI() {
-            if (GUILayout.Button("Scan MonoBehaviours"))
-                ((NetworkView)target).ScanForBehaviours();
-            DrawDefaultInspector();
+            var target = (NetworkView)this.target;
+            EditorGUILayout.BeginVertical((GUIStyle)"HelpBox");
+            GUILayout.Label("Network View", EditorStyles.boldLabel);
+            if (Application.IsPlaying(target) && targets.Length < 2) {
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.IntField("Id", target.Id);
+                var owner = JsonUtility.ToJson(target.Owner, true);
+                EditorGUILayout.TextField("Owner", owner);
+                EditorGUI.EndDisabledGroup();
+            }
+            else {
+                EditorGUILayout.HelpBox("Enter Play Mode for more Info", MessageType.Warning);
+            }
+            if (GUILayout.Button("Scan MonoBehaviours")) {
+                foreach (var _target in targets) {
+                    EditorUtility.SetDirty(_target);
+                    var view = _target as NetworkView;
+                    view.ScanForBehaviours();
+                    AssetDatabase.SaveAssetIfDirty(_target);
+                }
+                AssetDatabase.SaveAssets();
+            }
+            EditorGUILayout.EndVertical();
+            base.OnInspectorGUI();
         }
     }
 #endif
@@ -24,10 +46,14 @@ namespace WrappedNetworking {
         public static Dictionary<uint, NetworkView> Views { get; set; } = new();
         public bool IsMine => isOwned || isLocalPlayer;
         public NetworkConnectionToClient Owner => connectionToClient;
-        public bool allowClientAuthorityOverride = true;
-        public Action onStart;
-
-        private Dictionary<string, Method> wrappedMethods = new();
+        public int Id => (int)netId;
+        public bool AllowClientAuthorityOverride { get; set; } = true;
+        public Action OnStart {
+            get; set;
+        }
+        private Dictionary<string, Method> wrappedMethods { get; set; } = new();
+        [SerializeField]
+        private MonoBehaviour[] behavioursToBeScanned;
         private void OnEnable() {
             Views.Add(netId, this);
         }
@@ -43,10 +69,7 @@ namespace WrappedNetworking {
                 this.methodInfo = methodInfo;
                 this.wantSenderInfo = wantSenderInfo;
             }
-        }
-        [SerializeField]
-        private MonoBehaviour[] behavioursToBeScanned;
-
+        }     
         private void Awake()
         {
             wrappedMethods = new();
@@ -70,7 +93,7 @@ namespace WrappedNetworking {
             base.OnStartClient();
             if (!GetComponent<NetworkIdentity>().enabled)
                 GetComponent<NetworkIdentity>().enabled = true;
-            onStart?.Invoke();
+            OnStart?.Invoke();
         }
 
         [Command(requiresAuthority = false)]
