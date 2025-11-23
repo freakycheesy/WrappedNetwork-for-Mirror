@@ -67,13 +67,13 @@ namespace UnityEngine.Networking
         public static void CreateRoom(int maxConns = 16, bool asHost = true) {
             Disconnect();
             NetworkManager.singleton.maxConnections = maxConns;
-            if(asHost) NetworkManager.singleton.StartHost();
-            else NetworkManager.singleton.StartServer();
+            NetworkServer.Listen(maxConns);
+            if (asHost)
+                NetworkClient.ConnectHost();
         }
         public static void JoinRoom(string address) {
             Disconnect();
-            NetworkManager.singleton.networkAddress = address;
-            NetworkManager.singleton.StartClient();
+            NetworkClient.Connect(address);
         }
     }
 }
