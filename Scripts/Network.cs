@@ -31,7 +31,7 @@ namespace UnityEngine.Networking
             return gameObject;
         }
         [Server]
-        public static void Destroy(NetworkView view) {
+        public static void Destroy(NetworkIdentity view) {
             NetworkServer.Destroy(view.gameObject);
         }
         [Server]
@@ -39,8 +39,8 @@ namespace UnityEngine.Networking
             NetworkServer.Destroy(gameObject);
         }
         [Server]
-        public static void DestroyAll() {
-            foreach (var view in NetworkView.Views.Values) {
+        public static void DestroyAll() {        
+            foreach (var view in NetworkServer.spawned.Values) {
                 Destroy(view);
             }
         }
